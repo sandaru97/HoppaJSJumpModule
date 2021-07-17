@@ -1,0 +1,11 @@
+{
+  "expo": {
+    "name": "hoppaJump1",
+    "slug": "hoppaJump1",
+    "version": "1.0.0",
+    "assetBundlePatterns": [
+      "**/*"
+    ]
+  },
+  "name": "hoppaJump1"
+}
