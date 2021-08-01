@@ -19,19 +19,21 @@ import { Accelerometer } from 'expo-sensors';
 
 export default function App() {
 
-  const [speed,setSpeed] = useState(0);
-  const [mLastShake,setmLastShake] = useState(0);
-  const [SHAKE_DURATION,setSHAKE_DURATION] = useState(400);
-  const [SHAKE_COUNT,setSHAKE_COUNT] = useState(2);
-  const [FORCE_THRESHOLD,setFORCE_THRESHOLD] = useState(1500);
-  const [mLastZ,setmLastZ] = useState(1.0);
-  const [mLastY,setmLastY] = useState(1.0);
-  const [mLastX,setmLastX] = useState(1.0);
-  const [mLastTime,setmLastTime] = useState(0);
-  const [TIME_THRESHOLD,setjumpTIME_THRESHOLD] = useState(100);
-  const [mLastFroce,setmLastFroce] = useState(0);
-  const [SHAKE_TIMEOUT,setSHAKE_TIMEOUT] = useState(500);
-  let [mShakeCount,setmShakeCount] = useState(0);
+  // var now = Date.now();
+  // const [now,setNow] = useState(Date.now());
+  // const [speed,setSpeed] = useState(0);
+  // const [mLastShake,setmLastShake] = useState(0);
+  const SHAKE_DURATION = 400;
+  const SHAKE_COUNT = 2;
+  const FORCE_THRESHOLD = 2000;
+  // const [mLastZ,setmLastZ] = useState(0);
+  // const [mLastY,setmLastY] = useState(0);
+  // const [mLastX,setmLastX] = useState(0);
+  // let [mLastTime,setmLastTime] = useState(0);
+  const TIME_THRESHOLD = 100;
+  // const [mLastFroce,setmLastFroce] = useState(0);
+  const SHAKE_TIMEOUT = 500;
+  // let [mShakeCount,setmShakeCount] = useState(0);
   let [jumpCount,setjump] = useState(0);
   const [data, setData] = useState({
     x: 0,
@@ -42,52 +44,61 @@ export default function App() {
   const [subscription, setSubscription] = useState(null);
 
   const _slow = () => {
-    Accelerometer.setUpdateInterval(1000);
+    Accelerometer.setUpdateInterval(20);
   };
 
   const _fast = () => {
-    Accelerometer.setUpdateInterval(16);
+    Accelerometer.setUpdateInterval(20);
   };
 
   const _subscribe = () => {
+    let mLastTime = 0;
+    let mLastX = -1.0;
+    let mLastY = -1.0;
+    let mLastZ = -1.0;
+    let mShakeCount = 0;
+    let mLastFroce = 0;
+    let mLastShake = 0;
+
     setSubscription(
+      
       Accelerometer.addListener(accelerometerData => {
-        // console.log(accelerometerData);
         setData(accelerometerData);
-        const { x, y, z } = data; 
-        // console.log(x,y,z);
-
+        const { x, y, z } = accelerometerData; 
+  
         var now = Date.now();
+ 
         if ((now - mLastFroce) > SHAKE_TIMEOUT) {
-          // console.log('first if')
-          setmShakeCount(0);
+           mShakeCount = 0;
         }
-        if ((now - mLastTime) > TIME_THRESHOLD) {
-          // console.log('2nd if') 
 
+        if ((now - mLastTime) > TIME_THRESHOLD) {
           let diff = now - mLastTime;
-          let speed = Math.abs(x + y + z - mLastX - mLastY - mLastZ) / diff * 1000000000000000;
-          setSpeed(speed);
-          // console.log(speed,FORCE_THRESHOLD); 
+          // console.log('diff',diff)
+          // console.log('numerator:',Math.abs(x + y + z - mLastX - mLastY - mLastZ))
+          let speed = Math.abs(x + y + z - mLastX - mLastY - mLastZ) / diff * 100000;
+
+          // console.log('speed',speed); 
           if (speed > FORCE_THRESHOLD) {
-            // console.log(now - mLastShake)
-            setmShakeCount(++mShakeCount);
-            // console.log(mShakeCount)
-            if ( (mShakeCount >= SHAKE_COUNT) && (now - mLastShake > SHAKE_DURATION)) {
-              console.log('4th if')
-              setmLastShake(now);
-              setmShakeCount(0);
-              // if (true) {
+            console.log(now-mLastShake)
+            
+            if ( (++mShakeCount >= SHAKE_COUNT) && (now - mLastShake > SHAKE_DURATION)) {
+              console.log(mShakeCount)
+              mLastShake = now;
+              mShakeCount = 0;
+
               setjump(jumpCount++);
-              // }
+              console.log(jumpCount);
+
             }
-            setmLastFroce(now);
+            mLastFroce = now;
 
           }
-          setmLastTime(now);
-          setmLastX(x);
-          setmLastY(y);
-          setmLastZ(z);
+          
+          mLastTime = now;
+          mLastX = x;
+          mLastY = y;
+          mLastZ = z;
         }
       })
     );
@@ -104,25 +115,22 @@ export default function App() {
     return () => _unsubscribe();
 
   }, []);
-  // const { x, y, z } = data;
-  //var now = d.getMilliseconds();
-  //i++;
-  // console.log(Math.abs(x + y + z - mLastX - mLastY - mLastZ)/(now - mLastTime)*10000);
+
   return (
     <View style={styles.container}>
       <Text style={styles.text}>Accelerometer: (in Gs where 1 G = 9.81 m s^-2)</Text>
       <Text style={styles.text}>
         x: {round(data.x)} y: {round(data.y)} z: {round(data.z)}
       </Text>
-      <Text style={styles.text}>
+      {/* <Text style={styles.text}>
         speed:{speed}
-      </Text>
-      <Text style={styles.text}>
+      </Text> */}
+      {/* <Text style={styles.text}>
         mShakeCount:{mShakeCount}
-      </Text>
-      <Text style={styles.text}>
+      </Text> */}
+      {/* <Text style={styles.text}>
       now - mLastShake:{Date.now() - mLastShake}
-      </Text>
+      </Text> */}
       <Text style={styles.text}>
         jumpCount:{jumpCount}
       </Text>
